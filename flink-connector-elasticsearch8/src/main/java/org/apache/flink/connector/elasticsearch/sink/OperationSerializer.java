@@ -37,6 +37,7 @@ public class OperationSerializer {
     public OperationSerializer() {
         kryo.setRegistrationRequired(false);
         kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
+        kryo.setClassLoader(Thread.currentThread().getContextClassLoader());
     }
 
     public void serialize(Operation request, DataOutputStream out) {
