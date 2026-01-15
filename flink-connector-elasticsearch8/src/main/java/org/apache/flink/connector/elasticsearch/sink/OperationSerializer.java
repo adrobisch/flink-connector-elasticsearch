@@ -81,7 +81,7 @@ public class OperationSerializer {
         }
 
         @Override
-        public JsonNode read(Kryo kryo, Input input, Class<JsonNode> type) {
+        public JsonNode read(Kryo kryo, Input input, Class<? extends JsonNode> type) {
             try {
                 int length = input.readInt(true);
                 byte[] bytes = input.readBytes(length);
