@@ -24,7 +24,7 @@ under the License.
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>org.apache.flink</groupId>
+		<groupId>com.drobisch</groupId>
 		<artifactId>flink-connector-elasticsearch-e2e-tests</artifactId>
 		<version>4.0.0-serde-fixes</version>
 	</parent>
@@ -47,7 +47,7 @@ under the License.
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.flink</groupId>
+			<groupId>com.drobisch</groupId>
 			<artifactId>flink-connector-elasticsearch-base</artifactId>
 			<version>${project.version}</version>
 			<type>test-jar</type>
@@ -60,12 +60,12 @@ under the License.
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.flink</groupId>
+			<groupId>com.drobisch</groupId>
 			<artifactId>flink-connector-elasticsearch6</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.flink</groupId>
+			<groupId>com.drobisch</groupId>
 			<artifactId>flink-connector-elasticsearch-e2e-tests-common</artifactId>
 			<version>${project.version}</version>
 			<scope>provided</scope>
@@ -134,7 +134,7 @@ under the License.
 				<configuration>
 					<artifactItems>
 						<artifactItem>
-							<groupId>org.apache.flink</groupId>
+							<groupId>com.drobisch</groupId>
 							<artifactId>flink-connector-elasticsearch-e2e-tests-common</artifactId>
 							<version>${project.version}</version>
 							<destFileName>flink-connector-elasticsearch-test-utils.jar</destFileName>
