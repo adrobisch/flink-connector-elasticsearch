@@ -29,6 +29,7 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.utility.DockerImageName;
 
+import java.time.Duration;
 import java.util.Optional;
 
 /** Collection of utility methods for Elasticsearch tests. */
@@ -65,7 +66,8 @@ public class ElasticsearchUtil {
         return new ElasticsearchContainer(DockerImageName.parse(dockerImageVersion))
                 .withEnv("ES_JAVA_OPTS", "-Xms2g -Xmx2g")
                 .withEnv("logger.org.elasticsearch", logLevel)
-                .withLogConsumer(new Slf4jLogConsumer(log));
+                .withLogConsumer(new Slf4jLogConsumer(log))
+                .withStartupTimeout(Duration.ofMinutes(5));
     }
 
     /** A mock {@link DynamicTableSink.Context} for Elasticsearch tests. */
