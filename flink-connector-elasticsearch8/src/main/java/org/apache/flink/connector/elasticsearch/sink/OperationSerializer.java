@@ -27,6 +27,8 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.json.Json;
+import jakarta.json.JsonValue;
 import org.objenesis.strategy.StdInstantiatorStrategy;
 
 import java.io.ByteArrayOutputStream;
@@ -42,6 +44,7 @@ public class OperationSerializer {
         kryo.setRegistrationRequired(false);
         kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
         kryo.addDefaultSerializer(JsonNode.class, new JsonNodeSerializer());
+        kryo.addDefaultSerializer(JsonValue.class, new JakartaSerializer());
         kryo.setClassLoader(Thread.currentThread().getContextClassLoader());
     }
 
@@ -88,6 +91,26 @@ public class OperationSerializer {
                 return MAPPER.readTree(bytes);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to deserialize JsonNode", e);
+            }
+        }
+    }
+
+    private static class JakartaSerializer extends Serializer<JsonValue> {
+        @Override
+        public void write(Kryo kryo, Output output, JsonValue jsonValue) {
+            try {
+                Json.createGenerator(output.getOutputStream()).write(jsonValue);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to serialize JsonValue", e);
+            }
+        }
+
+        @Override
+        public JsonValue read(Kryo kryo, Input input, Class<? extends JsonValue> aClass) {
+            try {
+                return Json.createParser(input.getInputStream()).getValue();
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to deserialize JsonValue", e);
             }
         }
     }
