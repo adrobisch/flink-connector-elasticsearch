@@ -26,7 +26,7 @@ under the License.
 	<parent>
 		<groupId>com.drobisch</groupId>
 		<artifactId>flink-connector-elasticsearch-parent</artifactId>
-		<version>4.0.1-serde-fixes</version>
+		<version>4.0.3-serde-fixes</version>
 	</parent>
 
 	<artifactId>flink-connector-elasticsearch8</artifactId>
@@ -40,6 +40,7 @@ under the License.
 		<surefire.module.config><!-- required by
 		ElasticsearchSinkBaseITCase -->--add-opens=java.base/java.util=ALL-UNNAMED</surefire.module.config>
 		<jackson.version>2.16.1</jackson.version>
+		<kryo.version>2.24.0</kryo.version>
 	</properties>
 
 	<dependencies>
@@ -128,6 +129,14 @@ under the License.
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-architecture-tests-production</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Override Kryo for tests to match production (Flink-shaded Kryo may differ). -->
+		<dependency>
+			<groupId>com.esotericsoftware.kryo</groupId>
+			<artifactId>kryo</artifactId>
+			<version>${kryo.version}</version>
 			<scope>test</scope>
 		</dependency>
 
