@@ -99,7 +99,9 @@ public class OperationSerializer {
         @Override
         public void write(Kryo kryo, Output output, JsonValue jsonValue) {
             try {
-                Json.createGenerator(output.getOutputStream()).write(jsonValue);
+                Json.createGenerator(output).write(jsonValue);
+                output.flush();
+                output.close();
             } catch (Exception e) {
                 throw new RuntimeException("Failed to serialize JsonValue", e);
             }
@@ -108,7 +110,9 @@ public class OperationSerializer {
         @Override
         public JsonValue read(Kryo kryo, Input input, Class<? extends JsonValue> aClass) {
             try {
-                return Json.createParser(input.getInputStream()).getValue();
+                JsonValue json = Json.createParser(input).getValue();
+                input.close();
+                return json;
             } catch (Exception e) {
                 throw new RuntimeException("Failed to deserialize JsonValue", e);
             }
