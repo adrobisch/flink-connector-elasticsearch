@@ -31,9 +31,11 @@ import jakarta.json.Json;
 import jakarta.json.JsonValue;
 import org.objenesis.strategy.StdInstantiatorStrategy;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.nio.charset.StandardCharsets;
 
 /** OperationSerializer is responsible for serialization and deserialization of an Operation. */
 public class OperationSerializer {
@@ -99,9 +101,11 @@ public class OperationSerializer {
         @Override
         public void write(Kryo kryo, Output output, JsonValue jsonValue) {
             try {
-                Json.createGenerator(output).write(jsonValue);
-                output.flush();
-                output.close();
+                // Serialize JsonValue in a length-delimited format. JSON parsers may otherwise
+                // read ahead and consume bytes belonging to subsequent Kryo fields.
+                byte[] jsonBytes = jsonValue.toString().getBytes(StandardCharsets.UTF_8);
+                output.writeInt(jsonBytes.length, true);
+                output.writeBytes(jsonBytes);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to serialize JsonValue", e);
             }
@@ -110,9 +114,9 @@ public class OperationSerializer {
         @Override
         public JsonValue read(Kryo kryo, Input input, Class<? extends JsonValue> aClass) {
             try {
-                JsonValue json = Json.createParser(input).getValue();
-                input.close();
-                return json;
+                int length = input.readInt(true);
+                byte[] bytes = input.readBytes(length);
+                return Json.createReader(new ByteArrayInputStream(bytes)).readValue();
             } catch (Exception e) {
                 throw new RuntimeException("Failed to deserialize JsonValue", e);
             }

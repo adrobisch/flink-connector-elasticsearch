@@ -26,6 +26,7 @@ import co.elastic.clients.elasticsearch.core.bulk.DeleteOperation;
 import co.elastic.clients.elasticsearch.core.bulk.IndexOperation;
 import co.elastic.clients.elasticsearch.core.bulk.UpdateOperation;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -60,6 +61,35 @@ public class OperationSerializerTest {
         assertThat(actualState.getBulkOperationVariant())
                 .usingRecursiveComparison(RecursiveComparisonConfiguration.builder().build())
                 .isEqualTo(expectedState.getBulkOperationVariant());
+    }
+
+    @Test
+    void testSerializeAndDeserializeIndexOperationWithJsonDataDocument() {
+        IndexOperation<?> indexOperation =
+                new IndexOperation.Builder<>()
+                        .id("index-jsondata")
+                        .index("testing")
+                        .document(co.elastic.clients.json.JsonData.fromJson("{\"action\":\"index\"}"))
+                        .build();
+
+        Operation expectedState = new Operation(indexOperation);
+
+        final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        final DataOutputStream out = new DataOutputStream(bytes);
+
+        new OperationSerializer().serialize(expectedState, out);
+
+        final ByteArrayInputStream inputBytes = new ByteArrayInputStream(bytes.toByteArray());
+        final DataInputStream in = new DataInputStream(inputBytes);
+
+        Operation actualState = new OperationSerializer().deserialize(getRequestSize(expectedState), in);
+
+        IndexOperation<?> restoredIndexOperation =
+                (IndexOperation<?>) actualState.getBulkOperationVariant();
+        assertThat(restoredIndexOperation.id()).isEqualTo("index-jsondata");
+        assertThat(restoredIndexOperation.index()).isEqualTo("testing");
+        assertThat(((co.elastic.clients.json.JsonData) restoredIndexOperation.document()).toJson().toString())
+                .isEqualTo("{\"action\":\"index\"}");
     }
 
     private static Stream<Arguments> operations() {
