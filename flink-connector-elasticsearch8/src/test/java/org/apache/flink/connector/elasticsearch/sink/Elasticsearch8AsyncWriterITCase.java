@@ -494,12 +494,12 @@ public class Elasticsearch8AsyncWriterITCase extends ElasticsearchSinkBaseITCase
         assertThat(retriedCalled.get())
                 .as(
                         "A 502 Bad Gateway must trigger retryForEntries() – records should be"
-                            + " retried, not lost")
+                                + " retried, not lost")
                 .isTrue();
         assertThat(exceptionCalled.get())
                 .as(
                         "A 502 Bad Gateway must NOT immediately fail the job via"
-                            + " completeExceptionally()")
+                                + " completeExceptionally()")
                 .isFalse();
     }
 
@@ -550,12 +550,12 @@ public class Elasticsearch8AsyncWriterITCase extends ElasticsearchSinkBaseITCase
         assertThat(retriedCalled.get())
                 .as(
                         "A connection reset must trigger retryForEntries() – records should be"
-                            + " retried, not lost")
+                                + " retried, not lost")
                 .isTrue();
         assertThat(exceptionCalled.get())
                 .as(
                         "A connection reset must NOT immediately fail the job via"
-                            + " completeExceptionally()")
+                                + " completeExceptionally()")
                 .isFalse();
     }
 

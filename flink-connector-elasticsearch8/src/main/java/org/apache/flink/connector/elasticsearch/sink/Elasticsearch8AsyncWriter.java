@@ -147,7 +147,7 @@ public class Elasticsearch8AsyncWriter<InputT> extends AsyncSinkWriter<InputT, R
                 String errorMsg =
                         String.format(
                                 "Retry limit (%d) exceeded in Non-Emergency Mode. Failing job to"
-                                    + " prevent infinite loop. Operation: %s",
+                                        + " prevent infinite loop. Operation: %s",
                                 maxRetries, op.getOperation());
                 LOG.error(errorMsg);
                 throw new FlinkRuntimeException(errorMsg);
@@ -236,7 +236,7 @@ public class Elasticsearch8AsyncWriter<InputT> extends AsyncSinkWriter<InputT, R
         if (failureCount > 0) {
             LOG.info(
                     "BulkRequest had {} failed items out of {} for index {} with sample document ID"
-                        + " {}. Error type: {}, status: {}, reason: '{}'",
+                            + " {}. Error type: {}, status: {}, reason: '{}'",
                     failureCount,
                     requestEntries.size(),
                     indexName,

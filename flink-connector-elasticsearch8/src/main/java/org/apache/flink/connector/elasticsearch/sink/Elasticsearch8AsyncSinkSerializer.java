@@ -27,24 +27,30 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-/** * Serializer for RetryableOperation.
- * Persists both the Operation data AND the retry counter.
- */
-public class Elasticsearch8AsyncSinkSerializer extends AsyncSinkWriterStateSerializer<RetryableOperation> {
+/** * Serializer for RetryableOperation. Persists both the Operation data AND the retry counter. */
+public class Elasticsearch8AsyncSinkSerializer
+        extends AsyncSinkWriterStateSerializer<RetryableOperation> {
 
     @Override
-    protected void serializeRequestToStream(RetryableOperation request, DataOutputStream out) throws IOException {
+    protected void serializeRequestToStream(RetryableOperation request, DataOutputStream out)
+            throws IOException {
         out.writeInt(request.getAttemptCount());
         new OperationSerializer().serialize(request.getOperation(), out);
     }
 
     @Override
-    protected RetryableOperation deserializeRequestFromStream(long requestSize, DataInputStream in) throws IOException {
+    protected RetryableOperation deserializeRequestFromStream(long requestSize, DataInputStream in)
+            throws IOException {
         int attempts = in.readInt();
-        Operation op = new OperationSerializer().deserialize(requestSize - 4, in);  // Read the Operation (Size is roughly requestSize - 4 bytes for the int)
+        Operation op =
+                new OperationSerializer()
+                        .deserialize(
+                                requestSize - 4,
+                                in); // Read the Operation (Size is roughly requestSize - 4 bytes
+        // for the int)
         RetryableOperation retryableOp = new RetryableOperation(op);
         for (int i = 0; i < attempts; i++) {
-            retryableOp.incrementAttempt();  // Fast-forward the counter to restored state
+            retryableOp.incrementAttempt(); // Fast-forward the counter to restored state
         }
         return retryableOp;
     }

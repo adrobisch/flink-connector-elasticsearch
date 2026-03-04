@@ -49,10 +49,12 @@ class Elasticsearch8AsyncSinkSerializerStateRestoreTest {
         // Change state to verify the counter persists (e.g. set attempts to 2)
         retryableOp.incrementAttempt();
         retryableOp.incrementAttempt();
-        long operationSize = new OperationSerializer().size(operation) + 4; // 4 bytes for attempt integer
+        long operationSize =
+                new OperationSerializer().size(operation) + 4; // 4 bytes for attempt integer
         BufferedRequestState<RetryableOperation> state =
                 new BufferedRequestState<>(
-                        Collections.singletonList(new RequestEntryWrapper<>(retryableOp, operationSize)));
+                        Collections.singletonList(
+                                new RequestEntryWrapper<>(retryableOp, operationSize)));
 
         Elasticsearch8AsyncSinkSerializer serializer = new Elasticsearch8AsyncSinkSerializer();
         byte[] serializedState = serializer.serialize(state);
@@ -62,7 +64,8 @@ class Elasticsearch8AsyncSinkSerializerStateRestoreTest {
 
         assertThat(restoredState.getBufferedRequestEntries()).hasSize(1);
 
-        RetryableOperation restoredRetryableOp = restoredState.getBufferedRequestEntries().get(0).getRequestEntry();
+        RetryableOperation restoredRetryableOp =
+                restoredState.getBufferedRequestEntries().get(0).getRequestEntry();
         assertThat(restoredRetryableOp.getAttemptCount()).isEqualTo(2);
         Operation restoredOperation = restoredRetryableOp.getOperation();
         assertThat(restoredOperation.getBulkOperationVariant()).isInstanceOf(IndexOperation.class);
