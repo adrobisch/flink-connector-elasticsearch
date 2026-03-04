@@ -69,7 +69,8 @@ public class OperationSerializerTest {
                 new IndexOperation.Builder<>()
                         .id("index-jsondata")
                         .index("testing")
-                        .document(co.elastic.clients.json.JsonData.fromJson("{\"action\":\"index\"}"))
+                        .document(
+                                co.elastic.clients.json.JsonData.fromJson("{\"action\":\"index\"}"))
                         .build();
 
         Operation expectedState = new Operation(indexOperation);
@@ -82,13 +83,17 @@ public class OperationSerializerTest {
         final ByteArrayInputStream inputBytes = new ByteArrayInputStream(bytes.toByteArray());
         final DataInputStream in = new DataInputStream(inputBytes);
 
-        Operation actualState = new OperationSerializer().deserialize(getRequestSize(expectedState), in);
+        Operation actualState =
+                new OperationSerializer().deserialize(getRequestSize(expectedState), in);
 
         IndexOperation<?> restoredIndexOperation =
                 (IndexOperation<?>) actualState.getBulkOperationVariant();
         assertThat(restoredIndexOperation.id()).isEqualTo("index-jsondata");
         assertThat(restoredIndexOperation.index()).isEqualTo("testing");
-        assertThat(((co.elastic.clients.json.JsonData) restoredIndexOperation.document()).toJson().toString())
+        assertThat(
+                        ((co.elastic.clients.json.JsonData) restoredIndexOperation.document())
+                                .toJson()
+                                .toString())
                 .isEqualTo("{\"action\":\"index\"}");
     }
 
