@@ -53,7 +53,8 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * @param <InputT> the type of records to be sunk into an Elasticsearch cluster
  */
 public class Elasticsearch8AsyncSinkBuilder<InputT>
-        extends AsyncSinkBaseBuilder<InputT, RetryableOperation, Elasticsearch8AsyncSinkBuilder<InputT>> {
+        extends AsyncSinkBaseBuilder<
+                InputT, RetryableOperation, Elasticsearch8AsyncSinkBuilder<InputT>> {
 
     private static final int DEFAULT_MAX_BATCH_SIZE = 500;
     private static final int DEFAULT_MAX_IN_FLIGHT_REQUESTS = 50;
@@ -85,16 +86,15 @@ public class Elasticsearch8AsyncSinkBuilder<InputT>
 
     private SerializableSupplier<HostnameVerifier> sslHostnameVerifier;
 
-    /**
-     * Enable Emergency Mode. When enabled, records are dropped after maxRetries.
-     */
+    /** Enable Emergency Mode. When enabled, records are dropped after maxRetries. */
     public Elasticsearch8AsyncSinkBuilder<InputT> setEmergencyMode(boolean emergencyMode) {
         this.emergencyMode = emergencyMode;
         return this;
     }
 
     /**
-     * Set max retries before dropping a record (if Emergency Mode is on) or failing the application .
+     * Set max retries before dropping a record (if Emergency Mode is on) or failing the application
+     * .
      */
     public Elasticsearch8AsyncSinkBuilder<InputT> setMaxRetries(int maxRetries) {
         this.maxRetries = maxRetries;
@@ -247,7 +247,8 @@ public class Elasticsearch8AsyncSinkBuilder<InputT>
         return new Elasticsearch8AsyncSink<>(
                 buildOperationConverter(elementConverter),
                 Optional.ofNullable(getMaxBatchSize()).orElse(DEFAULT_MAX_BATCH_SIZE),
-                Optional.ofNullable(getMaxInFlightRequests()).orElse(DEFAULT_MAX_IN_FLIGHT_REQUESTS),
+                Optional.ofNullable(getMaxInFlightRequests())
+                        .orElse(DEFAULT_MAX_IN_FLIGHT_REQUESTS),
                 Optional.ofNullable(getMaxBufferedRequests()).orElse(DEFAULT_MAX_BUFFERED_REQUESTS),
                 Optional.ofNullable(getMaxBatchSizeInBytes()).orElse(DEFAULT_MAX_BATCH_SIZE_IN_B),
                 Optional.ofNullable(getMaxTimeInBufferMS()).orElse(DEFAULT_MAX_TIME_IN_BUFFER_MS),

@@ -100,7 +100,7 @@ public abstract class ElasticsearchSinkBaseITCase {
     }
 
     @BeforeEach
-    public void setUpBase() throws InterruptedException{
+    public void setUpBase() throws InterruptedException {
         LOG.info("Setting up elasticsearch client, host: {}, secure: {}", getHost(), secure);
         client = secure ? createSecureElasticsearchClient() : createElasticsearchClient();
         waitForElasticsearch();
@@ -203,8 +203,8 @@ public abstract class ElasticsearchSinkBaseITCase {
     }
 
     /**
-     * Blocks until Elasticsearch is reachable and healthy.
-     * This prevents tests from failing due to startup race conditions.
+     * Blocks until Elasticsearch is reachable and healthy. This prevents tests from failing due to
+     * startup race conditions.
      */
     protected void waitForElasticsearch() throws InterruptedException {
         LOG.info("Waiting for Elasticsearch to become ready...");
@@ -218,7 +218,11 @@ public abstract class ElasticsearchSinkBaseITCase {
                 }
             } catch (IOException e) {
                 if (i > 55) {
-                    LOG.info("Still waiting for Elasticsearch (Attempt {}/{}): {}", i + 1, maxAttempts, e.getMessage());
+                    LOG.info(
+                            "Still waiting for Elasticsearch (Attempt {}/{}): {}",
+                            i + 1,
+                            maxAttempts,
+                            e.getMessage());
                 }
             }
             Thread.sleep(1000);

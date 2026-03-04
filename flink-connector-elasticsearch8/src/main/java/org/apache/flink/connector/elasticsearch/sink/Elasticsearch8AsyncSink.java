@@ -36,17 +36,16 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Elasticsearch8AsyncSink Apache Flink's Async Sink that submits Retryable operations into an Elasticsearch
- * cluster.
+ * Elasticsearch8AsyncSink Apache Flink's Async Sink that submits Retryable operations into an
+ * Elasticsearch cluster.
  *
  * @param <InputT> type of records that will be converted into {@link RetryableOperation} see {@link
- *         Elasticsearch8AsyncSinkBuilder} on how to construct valid instances
+ *     Elasticsearch8AsyncSinkBuilder} on how to construct valid instances
  */
 public class Elasticsearch8AsyncSink<InputT> extends AsyncSinkBase<InputT, RetryableOperation> {
     private static final Logger LOG = LoggerFactory.getLogger(Elasticsearch8AsyncSink.class);
 
-    @VisibleForTesting
-    protected final NetworkConfig networkConfig;
+    @VisibleForTesting protected final NetworkConfig networkConfig;
     private final boolean emergencyMode;
     private final int maxRetries;
 
@@ -113,7 +112,8 @@ public class Elasticsearch8AsyncSink<InputT> extends AsyncSinkBase<InputT, Retry
     }
 
     @Override
-    public SimpleVersionedSerializer<BufferedRequestState<RetryableOperation>> getWriterStateSerializer() {
+    public SimpleVersionedSerializer<BufferedRequestState<RetryableOperation>>
+            getWriterStateSerializer() {
         return new Elasticsearch8AsyncSinkSerializer();
     }
 }

@@ -2,9 +2,7 @@ package org.apache.flink.connector.elasticsearch.sink;
 
 import java.io.Serializable;
 
-/**
- * A wrapper around Operation that tracks how many times it has been attempted.
- */
+/** A wrapper around Operation that tracks how many times it has been attempted. */
 public class RetryableOperation implements Serializable {
     private final Operation operation;
     private int attemptCount;
