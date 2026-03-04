@@ -19,13 +19,6 @@
 
 package org.apache.flink.connector.elasticsearch.sink;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import co.elastic.clients.elasticsearch.core.bulk.IndexOperation;
-import co.elastic.clients.elasticsearch.core.bulk.UpdateOperation;
-import co.elastic.clients.json.JsonData;
-
 import org.apache.flink.api.connector.sink2.StatefulSinkWriter;
 import org.apache.flink.api.connector.sink2.WriterInitContext;
 import org.apache.flink.connector.base.sink.writer.BufferedRequestState;
@@ -33,6 +26,10 @@ import org.apache.flink.connector.base.sink.writer.ResultHandler;
 import org.apache.flink.connector.base.sink.writer.TestSinkInitContext;
 import org.apache.flink.metrics.Gauge;
 import org.apache.flink.util.FlinkRuntimeException;
+
+import co.elastic.clients.elasticsearch.core.bulk.IndexOperation;
+import co.elastic.clients.elasticsearch.core.bulk.UpdateOperation;
+import co.elastic.clients.json.JsonData;
 import org.apache.http.HttpHost;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
@@ -55,6 +52,9 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /** Integration tests for {@link Elasticsearch8AsyncWriter}. */
 public class Elasticsearch8AsyncWriterITCase extends ElasticsearchSinkBaseITCase {
