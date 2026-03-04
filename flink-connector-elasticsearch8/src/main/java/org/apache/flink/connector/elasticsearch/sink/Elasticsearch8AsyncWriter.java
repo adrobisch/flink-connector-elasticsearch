@@ -21,8 +21,15 @@
 
 package org.apache.flink.connector.elasticsearch.sink;
 
+import static org.apache.flink.util.Preconditions.checkNotNull;
+
+import co.elastic.clients.elasticsearch.ElasticsearchAsyncClient;
+import co.elastic.clients.elasticsearch.core.BulkRequest;
+import co.elastic.clients.elasticsearch.core.BulkResponse;
+import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
+import co.elastic.clients.elasticsearch.core.bulk.BulkResponseItem;
+
 import org.apache.flink.api.connector.sink2.WriterInitContext;
-import org.apache.flink.connector.base.sink.throwable.FatalExceptionClassifier;
 import org.apache.flink.connector.base.sink.writer.AsyncSinkWriter;
 import org.apache.flink.connector.base.sink.writer.BufferedRequestState;
 import org.apache.flink.connector.base.sink.writer.ElementConverter;
@@ -31,12 +38,7 @@ import org.apache.flink.connector.base.sink.writer.config.AsyncSinkWriterConfigu
 import org.apache.flink.metrics.Counter;
 import org.apache.flink.metrics.groups.SinkWriterMetricGroup;
 import org.apache.flink.util.FlinkRuntimeException;
-
-import co.elastic.clients.elasticsearch.ElasticsearchAsyncClient;
-import co.elastic.clients.elasticsearch.core.BulkRequest;
-import co.elastic.clients.elasticsearch.core.BulkResponse;
-import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
-import co.elastic.clients.elasticsearch.core.bulk.BulkResponseItem;
+import org.elasticsearch.client.ResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,13 +46,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static org.apache.flink.util.Preconditions.checkNotNull;
-
 /**
- * Modified Elasticsearch8AsyncWriter Apache Flink's Async Sink Writer  that uses RetryableOperation to track and drop failed requests.
+ * Modified Elasticsearch8AsyncWriter Apache Flink's Async Sink Writer that uses RetryableOperation
+ * to track and drop failed requests.
+ *
  * @param <InputT> type of Operations
  */
-
 public class Elasticsearch8AsyncWriter<InputT> extends AsyncSinkWriter<InputT, RetryableOperation> {
     private static final Logger LOG = LoggerFactory.getLogger(Elasticsearch8AsyncWriter.class);
 
@@ -60,23 +61,20 @@ public class Elasticsearch8AsyncWriter<InputT> extends AsyncSinkWriter<InputT, R
     private boolean close = false;
 
     private final Counter numRecordsOutErrorsCounter;
+
     /**
      * A counter to track number of records that are returned by Elasticsearch as failed and then
      * retried by this writer.
      */
     private final Counter numRecordsSendPartialFailureCounter;
+
     /** A counter to track the number of bulk requests that are sent to Elasticsearch. */
     private final Counter numRequestSubmittedCounter;
+
     /** A counter to track the number of bulk requests that are skipped in emergency mode. */
     private final Counter numRecordsSkippedCounter;
 
     private final OperationSerializer operationSerializer;
-
-    private static final FatalExceptionClassifier ELASTICSEARCH_FATAL_EXCEPTION_CLASSIFIER =
-            FatalExceptionClassifier.createChain(
-                    new FatalExceptionClassifier(
-                            err -> false, // No fatal network exceptions by default for this Sink
-                            err -> new FlinkRuntimeException("Fatal Elasticsearch error", err)));
 
     public Elasticsearch8AsyncWriter(
             ElementConverter<InputT, RetryableOperation> elementConverter,
@@ -90,8 +88,7 @@ public class Elasticsearch8AsyncWriter<InputT> extends AsyncSinkWriter<InputT, R
             NetworkConfig networkConfig,
             Collection<BufferedRequestState<RetryableOperation>> state,
             boolean emergencyMode,
-            int maxRetries
-    ) {
+            int maxRetries) {
         super(
                 elementConverter,
                 context,
@@ -113,7 +110,8 @@ public class Elasticsearch8AsyncWriter<InputT> extends AsyncSinkWriter<InputT, R
         checkNotNull(metricGroup);
 
         this.numRecordsOutErrorsCounter = metricGroup.getNumRecordsOutErrorsCounter();
-        this.numRecordsSendPartialFailureCounter = metricGroup.counter("numRecordsSendPartialFailure");
+        this.numRecordsSendPartialFailureCounter =
+                metricGroup.counter("numRecordsSendPartialFailure");
         this.numRequestSubmittedCounter = metricGroup.counter("numRequestSubmitted");
         this.numRecordsSkippedCounter = metricGroup.counter("numRecordsSkipped"); // New Metric
         this.operationSerializer = new OperationSerializer();
@@ -121,7 +119,8 @@ public class Elasticsearch8AsyncWriter<InputT> extends AsyncSinkWriter<InputT, R
 
     @Override
     protected void submitRequestEntries(
-            List<RetryableOperation> requestEntries, ResultHandler<RetryableOperation> resultHandler) {
+            List<RetryableOperation> requestEntries,
+            ResultHandler<RetryableOperation> resultHandler) {
 
         numRequestSubmittedCounter.inc();
         LOG.debug("submitRequestEntries with {} items", requestEntries.size());
@@ -131,18 +130,25 @@ public class Elasticsearch8AsyncWriter<InputT> extends AsyncSinkWriter<InputT, R
         for (RetryableOperation op : requestEntries) {
             op.incrementAttempt(); // Increment attempt before sending
             if (op.getAttemptCount() == 2) {
-                LOG.warn("Operation failed first time. Retrying... (sample op: {})", op.getOperation());
+                LOG.warn(
+                        "Operation failed first time. Retrying... (sample op: {})",
+                        op.getOperation());
             }
 
             if (emergencyMode && op.getAttemptCount() > maxRetries) {
-                LOG.warn("Emergency Mode: Dropping record after {} attempts. Operation: {}",
-                        op.getAttemptCount(), op.getOperation());
+                LOG.warn(
+                        "Emergency Mode: Dropping record after {} attempts. Operation: {}",
+                        op.getAttemptCount(),
+                        op.getOperation());
                 numRecordsSkippedCounter.inc();
-                // In emergency mode, by not adding it to 'toSend', it counts as "Success" because we don't report it as failed later.
+                // In emergency mode, by not adding it to 'toSend', it counts as "Success" because
+                // we don't report it as failed later.
             } else if (!emergencyMode && op.getAttemptCount() > maxRetries) {
-                String errorMsg = String.format(
-                        "Retry limit (%d) exceeded in Non-Emergency Mode. Failing job to prevent infinite loop. Operation: %s",
-                        maxRetries, op.getOperation());
+                String errorMsg =
+                        String.format(
+                                "Retry limit (%d) exceeded in Non-Emergency Mode. Failing job to"
+                                    + " prevent infinite loop. Operation: %s",
+                                maxRetries, op.getOperation());
                 LOG.error(errorMsg);
                 throw new FlinkRuntimeException(errorMsg);
             } else {
@@ -151,7 +157,7 @@ public class Elasticsearch8AsyncWriter<InputT> extends AsyncSinkWriter<InputT, R
         }
 
         if (toSend.isEmpty()) {
-            resultHandler.complete();  // All items were dropped. Complete immediately.
+            resultHandler.complete(); // All items were dropped. Complete immediately.
             return;
         }
 
@@ -166,7 +172,8 @@ public class Elasticsearch8AsyncWriter<InputT> extends AsyncSinkWriter<InputT, R
                             if (error != null) {
                                 handleFailedRequest(toSend, resultHandler, error); // network error
                             } else if (response.errors()) {
-                                handlePartiallyFailedRequest(toSend, resultHandler, response); // partial failures
+                                handlePartiallyFailedRequest(
+                                        toSend, resultHandler, response); // partial failures
                             } else {
                                 handleSuccessfulRequest(resultHandler, response);
                             }
@@ -184,7 +191,7 @@ public class Elasticsearch8AsyncWriter<InputT> extends AsyncSinkWriter<InputT, R
         LOG.debug("The BulkRequest has failed", error);
         numRecordsOutErrorsCounter.inc(requestEntries.size());
 
-        if (isRetryable(error.getCause())) {
+        if (isRetryable(error)) {
             resultHandler.retryForEntries(requestEntries);
         } else {
             Exception fatalException;
@@ -227,8 +234,16 @@ public class Elasticsearch8AsyncWriter<InputT> extends AsyncSinkWriter<InputT, R
         }
 
         if (failureCount > 0) {
-            LOG.info("BulkRequest had {} failed items out of {} for index {} with sample document ID {}. Error type: {}, status: {}, reason: '{}'",
-                    failureCount, requestEntries.size(), indexName, sampledFailedItemId, firstErrorType, firstErrorStatus, firstErrorMessage);
+            LOG.info(
+                    "BulkRequest had {} failed items out of {} for index {} with sample document ID"
+                        + " {}. Error type: {}, status: {}, reason: '{}'",
+                    failureCount,
+                    requestEntries.size(),
+                    indexName,
+                    sampledFailedItemId,
+                    firstErrorType,
+                    firstErrorStatus,
+                    firstErrorMessage);
         }
 
         numRecordsOutErrorsCounter.inc(failedItems.size());
@@ -246,12 +261,34 @@ public class Elasticsearch8AsyncWriter<InputT> extends AsyncSinkWriter<InputT, R
     }
 
     private boolean isRetryable(Throwable error) {
-        return !ELASTICSEARCH_FATAL_EXCEPTION_CLASSIFIER.isFatal(error, getFatalExceptionCons());
+        Throwable current = error;
+
+        while (current != null) {
+            if (current instanceof ResponseException) {
+                int statusCode =
+                        ((ResponseException) current).getResponse().getStatusLine().getStatusCode();
+                if (statusCode == 400
+                        || statusCode == 401
+                        || statusCode == 403
+                        || statusCode == 413) {
+                    return false;
+                }
+            }
+
+            if (current.getCause() == current) {
+                break;
+            }
+
+            current = current.getCause();
+        }
+
+        return true;
     }
 
     @Override
     protected long getSizeInBytes(RetryableOperation requestEntry) {
-        return operationSerializer.size(requestEntry.getOperation()) + 4; // We add constant overhead (4 bytes for int) to size
+        return operationSerializer.size(requestEntry.getOperation())
+                + 4; // We add constant overhead (4 bytes for int) to size
     }
 
     @Override
